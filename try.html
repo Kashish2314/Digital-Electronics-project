@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Builder Challenge</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --secondary-dark: #27ae60;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar {
+            background-color: var(--light);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .workspace {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 500px;
+            position: relative;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .level-info {
+            margin-bottom: 20px;
+        }
+        
+        .level-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+        
+        .level-description {
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .components-list {
+            margin-bottom: 20px;
+        }
+        
+        .component {
+            background-color: var(--primary);
+            color: white;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: move;
+            text-align: center;
+            user-select: none;
+            transition: all 0.2s;
+        }
+        
+        .component:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .gate {
+            position: absolute;
+            width: 80px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: move;
+            user-select: none;
+            z-index: 10;
+        }
+        
+        .gate.selected {
+            box-shadow: 0 0 0 2px yellow;
+        }
+        
+        .gate-input, .gate-output {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #333;
+            border-radius: 50%;
+        }
+        
+        .gate-input.connected, .gate-output.connected {
+            background-color: var(--secondary);
+        }
+        
+        .gate-input-1 {
+            top: 15px;
+            left: -5px;
+        }
+        
+        .gate-input-2 {
+            bottom: 15px;
+            left: -5px;
+        }
+        
+        .gate-output-1 {
+            top: 25px;
+            right: -5px;
+        }
+        
+        .wire {
+            position: absolute;
+            background-color: #333;
+            height: 2px;
+            transform-origin: left center;
+            z-index: 5;
+        }
+        
+        .test-area {
+            background-color: var(--light);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-inputs {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .input-label {
+            margin-bottom: 5px;
+        }
+        
+        .input-toggle {
+            width: 60px;
+            height: 34px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .input-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--secondary);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .output-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .output-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .output-circle.active {
+            background-color: var(--secondary);
+        }
+        
+        .verification-message {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            color: var(--secondary-dark);
+            height: 24px;
+        }
+        
+        .level-progress {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .level-indicator {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            background-color: #ccc;
+            border-radius: 50%;
+            margin: 0 5px;
+        }
+        
+        .level-indicator.current {
+            background-color: var(--primary);
+            transform: scale(1.2);
+        }
+        
+        .level-indicator.completed {
+            background-color: var(--secondary);
+        }
+        
+        .tutorial {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #ffffcc;
+            border-radius: 8px;
+            border-left: 4px solid #ffcc00;
+        }
+        
+        .hint-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .hint-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .hint-content img {
+            max-width: 100%;
+            margin-top: 10px;
+        }
+        
+        .hint-content button {
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gate Builder Challenge</h1>
+            <p>Build logic gates using only NAND gates!</p>
+        </header>
+        
+        <div class="tutorial" id="tutorial">
+            <p>Drag NAND gates from the sidebar to the workspace. Connect inputs and outputs by clicking on the connection points. Complete the challenge by building the requested logic gate!</p>
+        </div>
+        
+        <div class="game-container">
+            <div class="sidebar">
+                <div class="level-info">
+                    <h2 class="level-title" id="level-title">Level 1: NOT Gate</h2>
+                    <p class="level-description" id="level-description">Build a NOT gate using only NAND gates. Connect the input to get the opposite output.</p>
+                </div>
+                
+                <div class="components-list">
+                    <h3>Components</h3>
+                    <div class="component" draggable="true" data-type="nand">NAND Gate</div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-danger" id="reset-btn">Reset</button>
+                    <button class="btn btn-primary" id="verify-btn">Verify</button>
+                    <button class="btn btn-success" id="next-level-btn" disabled>Next Level</button>
+                    <button class="btn btn-primary" id="hint-btn">Hint</button>
+                </div>
+            </div>
+            
+            <div class="workspace" id="workspace">
+                <!-- Gates will be placed here dynamically -->
+            </div>
+        </div>
+        
+        <div class="test-area">
+            <h3>Test Your Circuit</h3>
+            <div class="test-inputs" id="test-inputs">
+                <div class="input-group">
+                    <label class="input-label">Input A</label>
+                    <label class="input-toggle">
+                        <input type="checkbox" id="input-a">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="input-group" id="input-b-group" style="display: none;">
+                    <label class="input-label">Input B</label>
+                    <label class="input-toggle">
+                        <input type="checkbox" id="input-b">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="output-display">
+                <h3>Output:</h3>
+                <div class="output-circle" id="output-display">0</div>
+            </div>
+            
+            <div class="verification-message" id="verification-message"></div>
+        </div>
+        
+        <div class="level-progress">
+            <div class="level-indicator current" data-level="1"></div>
+            <div class="level-indicator" data-level="2"></div>
+            <div class="level-indicator" data-level="3"></div>
+            <div class="level-indicator" data-level="4"></div>
+        </div>
+    </div>
+
+    <!-- Hint Overlay -->
+    <div class="hint-overlay" id="hint-overlay" style="display: none;">
+        <div class="hint-content">
+            <h2>Hint</h2>
+            <p id="hint-text"></p>
+            <!-- <img id="hint-image" src="" alt="Hint Image"> -->
+            <button class="btn btn-primary" id="close-hint-btn">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        // Global variables
+        const workspace = document.getElementById('workspace');
+        const resetBtn = document.getElementById('reset-btn');
+        const verifyBtn = document.getElementById('verify-btn');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const hintOverlay = document.getElementById('hint-overlay');
+        const hintText = document.getElementById('hint-text');
+        const hintImage = document.getElementById('hint-image');
+        const closeHintBtn = document.getElementById('close-hint-btn');
+        const levelTitle = document.getElementById('level-title');
+        const levelDescription = document.getElementById('level-description');
+        const inputA = document.getElementById('input-a');
+        const inputB = document.getElementById('input-b');
+        const inputBGroup = document.getElementById('input-b-group');
+        const outputDisplay = document.getElementById('output-display');
+        const verificationMessage = document.getElementById('verification-message');
+        const tutorial = document.getElementById('tutorial');
+        
+        let currentLevel = 1;
+        let gates = [];
+        let wires = [];
+        let selectedInput = null;
+        let draggedGate = null;
+        let offsetX, offsetY;
+        let gateIdCounter = 0;
+        let completedLevels = [];
+        
+        // Level configurations
+        const levels = [
+            {
+                title: "Level 1: NOT Gate",
+                description: "Build a NOT gate using only NAND gates. Connect the input to get the opposite output.",
+                inputs: 1,
+                truthTable: [
+                    { inputs: [0], output: 1 },
+                    { inputs: [1], output: 0 }
+                ],
+                hint: "Connect both inputs of a NAND gate together to create a NOT gate.",
+                // hintImage: "https://via.placeholder.com/300x150?text=NOT+Gate+Hint"
+            },
+            {
+                title: "Level 2: AND Gate",
+                description: "Build an AND gate using only NAND gates. The output should be 1 only when both inputs are 1.",
+                inputs: 2,
+                truthTable: [
+                    { inputs: [0, 0], output: 0 },
+                    { inputs: [0, 1], output: 0 },
+                    { inputs: [1, 0], output: 0 },
+                    { inputs: [1, 1], output: 1 }
+                ],
+                hint: "Use two NAND gates: the first NAND gate connects to both inputs, and the second NAND gate connects to the output of the first NAND gate.",
+                // hintImage: "https://via.placeholder.com/300x150?text=AND+Gate+Hint"
+            },
+            {
+                title: "Level 3: OR Gate",
+                description: "Build an OR gate using only NAND gates. The output should be 1 when at least one input is 1.",
+                inputs: 2,
+                truthTable: [
+                    { inputs: [0, 0], output: 0 },
+                    { inputs: [0, 1], output: 1 },
+                    { inputs: [1, 0], output: 1 },
+                    { inputs: [1, 1], output: 1 }
+                ],
+                hint: "Use three NAND gates: the first two NAND gates connect to the inputs, and the third NAND gate connects to the outputs of the first two.",
+                // hintImage: "https://via.placeholder.com/300x150?text=OR+Gate+Hint"
+            },
+            {
+                title: "Level 4: XOR Gate",
+                description: "Build an XOR gate using only NAND gates. The output should be 1 when exactly one input is 1.",
+                inputs: 2,
+                truthTable: [
+                    { inputs: [0, 0], output: 0 },
+                    { inputs: [0, 1], output: 1 },
+                    { inputs: [1, 0], output: 1 },
+                    { inputs: [1, 1], output: 0 }
+                ],
+                hint: "Use four NAND gates: the first two NAND gates connect to the inputs, the third NAND gate connects to the outputs of the first two, and the fourth NAND gate connects to the outputs of the first and third NAND gates.",
+                // hintImage: "https://via.placeholder.com/300x150?text=XOR+Gate+Hint"
+            }
+        ];
+        
+        // Initialize game
+        function initGame() {
+            // Clear workspace
+            resetWorkspace();
+            
+            // Set up level
+            loadLevel(currentLevel);
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+        
+        // Load level
+        function loadLevel(level) {
+            const levelIndex = level - 1;
+            const levelData = levels[levelIndex];
+            
+            levelTitle.textContent = levelData.title;
+            levelDescription.textContent = levelData.description;
+            
+            // Update level indicators
+            document.querySelectorAll('.level-indicator').forEach((indicator, index) => {
+                indicator.classList.remove('current');
+                if (index + 1 === level) {
+                    indicator.classList.add('current');
+                }
+                if (completedLevels.includes(index + 1)) {
+                    indicator.classList.add('completed');
+                }
+            });
+            
+            // Set up inputs based on level
+            if (levelData.inputs === 1) {
+                inputBGroup.style.display = 'none';
+            } else {
+                inputBGroup.style.display = 'flex';
+            }
+            
+            // Reset verification
+            verificationMessage.textContent = '';
+            nextLevelBtn.disabled = true;
+
+            // Update output display
+            updateOutput();
+        }
+
+        function resetWorkspace() {
+            // Clear gates and wires
+            gates = [];
+            wires = [];
+            selectedInput = null;
+
+            // Clear workspace DOM
+            while (workspace.firstChild) {
+                workspace.removeChild(workspace.firstChild);
+            }
+
+            // Reset output
+            updateOutput();
+
+            // Reset verification message
+            verificationMessage.textContent = '';
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Drag and drop from component list
+            document.querySelectorAll('.component').forEach(component => {
+                component.addEventListener('dragstart', handleDragStart);
+            });
+
+            workspace.addEventListener('dragover', handleDragOver);
+            workspace.addEventListener('drop', handleDrop);
+
+            // Button controls
+            resetBtn.addEventListener('click', resetWorkspace);
+            verifyBtn.addEventListener('click', verifyCircuit);
+            nextLevelBtn.addEventListener('click', () => {
+                if (currentLevel < levels.length) {
+                    currentLevel++;
+                    loadLevel(currentLevel);
+                }
+            });
+
+            // Hint button
+            hintBtn.addEventListener('click', showHint);
+
+            // Close hint overlay
+            closeHintBtn.addEventListener('click', () => {
+                hintOverlay.style.display = 'none';
+            });
+
+            // Input toggles
+            inputA.addEventListener('change', updateOutput);
+            inputB.addEventListener('change', updateOutput);
+
+            // Level indicators
+            document.querySelectorAll('.level-indicator').forEach(indicator => {
+                indicator.addEventListener('click', () => {
+                    const level = parseInt(indicator.getAttribute('data-level'));
+                    currentLevel = level;
+                    loadLevel(level);
+                });
+            });
+
+            // Close tutorial
+            tutorial.addEventListener('click', () => {
+                tutorial.style.display = 'none';
+            });
+        }
+
+        // Show hint for the current level
+        function showHint() {
+            const levelData = levels[currentLevel - 1];
+            hintText.textContent = levelData.hint;
+            // hintImage.src = levelData.hintImage;
+            hintOverlay.style.display = 'flex';
+        }
+
+        // Drag start from component list
+        function handleDragStart(e) {
+            const type = e.target.getAttribute('data-type');
+            e.dataTransfer.setData('text/plain', type);
+        }
+
+        // Drag over workspace
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }
+
+        // Drop onto workspace
+        function handleDrop(e) {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('text/plain');
+
+            if (type === 'nand') {
+                createGate(e.clientX, e.clientY);
+            }
+        }
+
+        // Create a gate
+        function createGate(clientX, clientY) {
+            const rect = workspace.getBoundingClientRect();
+            const x = clientX - rect.left - 40; // Center gate horizontally
+            const y = clientY - rect.top - 30;  // Center gate vertically
+
+            const gateId = gateIdCounter++;
+
+            // Create gate element
+            const gate = document.createElement('div');
+            gate.className = 'gate';
+            gate.id = `gate-${gateId}`;
+            gate.innerHTML = `
+                <svg width="80" height="60" viewBox="0 0 80 60">
+                    <!-- NAND Gate Symbol -->
+                    <path d="M10 10 L40 10 Q60 10 60 30 Q60 50 40 50 L10 50 Z" fill="white" stroke="#333" stroke-width="2" />
+                    <circle cx="65" cy="30" r="5" fill="none" stroke="#333" stroke-width="2" />
+                </svg>
+            `;
+            gate.style.left = `${x}px`;
+            gate.style.top = `${y}px`;
+
+            // Add inputs and outputs
+            const input1 = document.createElement('div');
+            input1.className = 'gate-input gate-input-1';
+            input1.id = `gate-${gateId}-input-1`;
+            input1.dataset.gateId = gateId;
+            input1.dataset.type = 'input';
+            input1.dataset.index = 1;
+
+            const input2 = document.createElement('div');
+            input2.className = 'gate-input gate-input-2';
+            input2.id = `gate-${gateId}-input-2`;
+            input2.dataset.gateId = gateId;
+            input2.dataset.type = 'input';
+            input2.dataset.index = 2;
+
+            const output = document.createElement('div');
+            output.className = 'gate-output gate-output-1';
+            output.id = `gate-${gateId}-output-1`;
+            output.dataset.gateId = gateId;
+            output.dataset.type = 'output';
+            output.dataset.index = 1;
+
+            gate.appendChild(input1);
+            gate.appendChild(input2);
+            gate.appendChild(output);
+
+            // Add to DOM
+            workspace.appendChild(gate);
+
+            // Store gate info
+            gates.push({
+                id: gateId,
+                element: gate,
+                type: 'nand',
+                inputs: [
+                    { element: input1, connected: null, value: 0 },
+                    { element: input2, connected: null, value: 0 }
+                ],
+                outputs: [
+                    { element: output, connected: [], value: 1 }
+                ],
+                position: { x, y }
+            });
+
+            // Add event listeners
+            setupGateEventListeners(gate, input1, input2, output);
+        }
+
+        function setupGateEventListeners(gate, input1, input2, output) {
+            // Make gate draggable
+            gate.addEventListener('mousedown', (e) => {
+                if (e.target === gate || e.target.tagName === 'svg' || e.target.tagName === 'path' || e.target.tagName === 'circle') {
+                    draggedGate = gate;
+                    const rect = gate.getBoundingClientRect();
+                    offsetX = e.clientX - rect.left;
+                    offsetY = e.clientY - rect.top;
+
+                    // Prevent other mousedown events
+                    e.stopPropagation();
+                }
+            });
+
+            // Handle gate selection
+            gate.addEventListener('click', (e) => {
+                if (e.target === gate || e.target.tagName === 'svg' || e.target.tagName === 'path' || e.target.tagName === 'circle') {
+                    // Deselect all gates
+                    document.querySelectorAll('.gate').forEach(g => {
+                        g.classList.remove('selected');
+                    });
+
+                    // Select this gate
+                    gate.classList.add('selected');
+                }
+            });
+
+            // Connect inputs and outputs
+            [input1, input2, output].forEach(pin => {
+                pin.addEventListener('click', (e) => {
+                    e.stopPropagation();
+
+                    const pinType = pin.dataset.type;
+                    const gateId = parseInt(pin.dataset.gateId);
+
+                    if (!selectedInput) {
+                        // Select this pin if it's an output or input
+                        if (pinType === 'output' || 
+                            (pinType === 'input' && !isInputConnected(gateId, parseInt(pin.dataset.index)))) {
+                            selectedInput = pin;
+                            pin.style.boxShadow = '0 0 0 2px yellow';
+                        }
+                    } else {
+                        // Try to connect
+                        const selectedType = selectedInput.dataset.type;
+                        const selectedGateId = parseInt(selectedInput.dataset.gateId);
+
+                        // Only connect output to input or input to output
+                        if ((selectedType === 'output' && pinType === 'input') ||
+                            (selectedType === 'input' && pinType === 'output')) {
+
+                            // Check if input is already connected
+                            if (pinType === 'input' && isInputConnected(gateId, parseInt(pin.dataset.index))) {
+                                // Input already connected, clear selection
+                                selectedInput.style.boxShadow = 'none';
+                                selectedInput = null;
+                                return;
+                            }
+
+                            if (selectedType === 'input' && isOutputConnectedToInput(gateId, parseInt(pin.dataset.index), 
+                                selectedGateId, parseInt(selectedInput.dataset.index))) {
+                                // Already connected to this input, clear selection
+                                selectedInput.style.boxShadow = 'none';
+                                selectedInput = null;
+                                return;
+                            }
+
+                            // Create wire
+                            createWire(selectedInput, pin);
+
+                            // Connect in data model
+                            if (selectedType === 'output') {
+                                connectGates(selectedGateId, gateId, parseInt(pin.dataset.index));
+                            } else {
+                                connectGates(gateId, selectedGateId, parseInt(selectedInput.dataset.index));
+                            }
+
+                            // Update output
+                            updateOutput();
+                        }
+
+                        // Clear selection
+                        selectedInput.style.boxShadow = 'none';
+                        selectedInput = null;
+                    }
+                });
+            });
+        }
+
+        // Check if input is connected
+        function isInputConnected(gateId, inputIndex) {
+            const gate = gates.find(g => g.id === gateId);
+            return gate && gate.inputs[inputIndex - 1].connected !== null;
+        }
+
+        // Check if output is already connected to this input
+        function isOutputConnectedToInput(outputGateId, outputIndex, inputGateId, inputIndex) {
+            const outputGate = gates.find(g => g.id === outputGateId);
+            return outputGate && outputGate.outputs[outputIndex - 1].connected.some(
+                conn => conn.gateId === inputGateId && conn.inputIndex === inputIndex
+            );
+        }
+
+        // Create a wire between pins
+        function createWire(startPin, endPin) {
+            const startRect = startPin.getBoundingClientRect();
+            const endRect = endPin.getBoundingClientRect();
+            const workspaceRect = workspace.getBoundingClientRect();
+
+            // Calculate positions relative to workspace
+            const startX = startRect.left + startRect.width / 2 - workspaceRect.left;
+            const startY = startRect.top + startRect.height / 2 - workspaceRect.top;
+            const endX = endRect.left + endRect.width / 2 - workspaceRect.left;
+            const endY = endRect.top + endRect.height / 2 - workspaceRect.top;
+
+            // Calculate distance and angle
+            const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+            const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+
+            // Create wire element
+            const wire = document.createElement('div');
+            wire.className = 'wire';
+            wire.style.width = `${distance}px`;
+            wire.style.left = `${startX}px`;
+            wire.style.top = `${startY}px`;
+            wire.style.transform = `rotate(${angle}deg)`;
+
+            // Store wire info
+            const wireId = wires.length;
+            wire.id = `wire-${wireId}`;
+
+            wires.push({
+                id: wireId,
+                element: wire,
+                startPin: startPin.id,
+                endPin: endPin.id,
+                startPosition: { x: startX, y: startY },
+                endPosition: { x: endX, y: endY }
+            });
+
+            // Add wire to DOM
+            workspace.appendChild(wire);
+
+            // Mark pins as connected
+            startPin.classList.add('connected');
+            endPin.classList.add('connected');
+
+            return wire;
+        }
+
+        // Connect gates in data model
+        function connectGates(outputGateId, inputGateId, inputIndex) {
+            const outputGate = gates.find(g => g.id === outputGateId);
+            const inputGate = gates.find(g => g.id === inputGateId);
+
+            if (outputGate && inputGate) {
+                // Connect output to input
+                outputGate.outputs[0].connected.push({
+                    gateId: inputGateId,
+                    inputIndex: inputIndex
+                });
+
+                // Connect input to output
+                inputGate.inputs[inputIndex - 1].connected = {
+                    gateId: outputGateId,
+                    outputIndex: 1
+                };
+            }
+        }
+
+        // Update circuit output
+        function updateOutput() {
+            // Get input values
+            const inputAValue = inputA.checked ? 1 : 0;
+            const inputBValue = inputB.checked ? 1 : 0;
+
+            // Reset all gate values
+            gates.forEach(gate => {
+                gate.inputs.forEach(input => {
+                    input.value = 0;
+                });
+                gate.outputs.forEach(output => {
+                    output.value = 1; // Default NAND output (with 0 inputs) is 1
+                });
+            });
+
+            // Find circuit input wires - these are wires that aren't connected to any gate output
+            const circuitInputs = [];
+
+            // For all gate inputs that aren't connected to another gate
+            gates.forEach(gate => {
+                gate.inputs.forEach((input, index) => {
+                    if (input.connected === null) {
+                        circuitInputs.push({
+                            gateId: gate.id,
+                            inputIndex: index + 1
+                        });
+                    }
+                });
+            });
+
+            // Assign input values based on level
+            const levelData = levels[currentLevel - 1];
+            if (levelData.inputs === 1) {
+                // Assign input A to all unconnected inputs
+                circuitInputs.forEach(input => {
+                    const gate = gates.find(g => g.id === input.gateId);
+                    if (gate) {
+                        gate.inputs[input.inputIndex - 1].value = inputAValue;
+                    }
+                });
+            } else if (levelData.inputs === 2) {
+                // Assign input A and B to first and second unconnected inputs
+                if (circuitInputs.length >= 1) {
+                    const gate = gates.find(g => g.id === circuitInputs[0].gateId);
+                    if (gate) {
+                        gate.inputs[circuitInputs[0].inputIndex - 1].value = inputAValue;
+                    }
+                }
+
+                if (circuitInputs.length >= 2) {
+                    const gate = gates.find(g => g.id === circuitInputs[1].gateId);
+                    if (gate) {
+                        gate.inputs[circuitInputs[1].inputIndex - 1].value = inputBValue;
+                    }
+                }
+            }
+
+            // Evaluate circuit (multiple passes to handle feedback)
+            const maxPasses = 10;
+            let changed = true;
+            let passes = 0;
+
+            while (changed && passes < maxPasses) {
+                changed = false;
+                passes++;
+
+                // Evaluate each gate
+                gates.forEach(gate => {
+                    if (gate.type === 'nand') {
+                        // Get input values
+                        const input1 = gate.inputs[0].value;
+                        const input2 = gate.inputs[1].value;
+
+                        // Compute NAND output
+                        const outputValue = !(input1 && input2) ? 1 : 0;
+
+                        // Check if output changed
+                        if (gate.outputs[0].value !== outputValue) {
+                            gate.outputs[0].value = outputValue;
+                            changed = true;
+
+                            // Propagate output to connected inputs
+                            gate.outputs[0].connected.forEach(conn => {
+                                const connectedGate = gates.find(g => g.id === conn.gateId);
+                                if (connectedGate) {
+                                    connectedGate.inputs[conn.inputIndex - 1].value = outputValue;
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Find circuit output - the output of the last gate that has no connections
+            let circuitOutput = 0;
+            for (let i = gates.length - 1; i >= 0; i--) {
+                const gate = gates[i];
+                if (gate && gate.outputs[0].connected.length === 0) {
+                    circuitOutput = gate.outputs[0].value;
+                    break;
+                }
+            }
+
+            // Update output display
+            outputDisplay.textContent = circuitOutput;
+            outputDisplay.classList.toggle('active', circuitOutput === 1);
+        }
+
+        // Verify circuit against truth table
+        function verifyCircuit() {
+            const levelData = levels[currentLevel - 1];
+            let allCorrect = true;
+
+            // Test all truth table cases
+            for (let i = 0; i < levelData.truthTable.length; i++) {
+                const testCase = levelData.truthTable[i];
+                
+                // Set inputs
+                inputA.checked = testCase.inputs[0] === 1;
+                if (levelData.inputs === 2) {
+                    inputB.checked = testCase.inputs[1] === 1;
+                }
+
+                // Update output
+                updateOutput();
+
+                // Check if output matches expected
+                const expectedOutput = testCase.output;
+                const actualOutput = parseInt(outputDisplay.textContent);
+
+                if (expectedOutput !== actualOutput) {
+                    allCorrect = false;
+                    break;
+                }
+            }
+
+            // Display verification message
+            if (allCorrect) {
+                verificationMessage.textContent = '✅ Correct! Well done!';
+                verificationMessage.style.color = 'green';
+
+                // Mark level as completed
+                if (!completedLevels.includes(currentLevel)) {
+                    completedLevels.push(currentLevel);
+                }
+
+                // Enable next level button if not on the last level
+                if (currentLevel < levels.length) {
+                    nextLevelBtn.disabled = false;
+                }
+            } else {
+                verificationMessage.textContent = '❌ Incorrect. Try again!';
+                verificationMessage.style.color = 'red';
+            }
+        }
+
+        // Handle gate dragging
+        document.addEventListener('mousemove', (e) => {
+            if (draggedGate) {
+                const rect = workspace.getBoundingClientRect();
+                const x = e.clientX - rect.left - offsetX;
+                const y = e.clientY - rect.top - offsetY;
+
+                // Update gate position
+                draggedGate.style.left = `${x}px`;
+                draggedGate.style.top = `${y}px`;
+
+                // Update gate position in data model
+                const gateId = parseInt(draggedGate.id.replace('gate-', ''));
+                const gate = gates.find(g => g.id === gateId);
+
+                if (gate) {
+                    // Update gate position in data model
+                    gate.position = { x, y };
+
+                    // Update all wires connected to this gate
+                    updateWiresForGate(gateId);
+                }
+            }
+        });
+
+        // Update all wires connected to a gate
+        function updateWiresForGate(gateId) {
+            wires.forEach(wire => {
+                const startPin = document.getElementById(wire.startPin);
+                const endPin = document.getElementById(wire.endPin);
+                
+                if (startPin && endPin) {
+                    if (startPin.dataset.gateId == gateId || endPin.dataset.gateId == gateId) {
+                        updateWirePosition(wire);
+                    }
+                }
+            });
+        }
+
+        // Update wire position
+        function updateWirePosition(wire) {
+            const startPin = document.getElementById(wire.startPin);
+            const endPin = document.getElementById(wire.endPin);
+
+            if (startPin && endPin) {
+                const startRect = startPin.getBoundingClientRect();
+                const endRect = endPin.getBoundingClientRect();
+                const workspaceRect = workspace.getBoundingClientRect();
+
+                const startX = startRect.left + startRect.width / 2 - workspaceRect.left;
+                const startY = startRect.top + startRect.height / 2 - workspaceRect.top;
+                const endX = endRect.left + endRect.width / 2 - workspaceRect.left;
+                const endY = endRect.top + endRect.height / 2 - workspaceRect.top;
+
+                const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+                const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+
+                wire.element.style.width = `${distance}px`;
+                wire.element.style.left = `${startX}px`;
+                wire.element.style.top = `${startY}px`;
+                wire.element.style.transform = `rotate(${angle}deg)`;
+
+                // Update wire positions in data model
+                wire.startPosition = { x: startX, y: startY };
+                wire.endPosition = { x: endX, y: endY };
+            }
+        }
+
+        // Stop dragging
+        document.addEventListener('mouseup', () => {
+            draggedGate = null;
+        });
+
+        // Initialize game
+        initGame();
+    });
+    </script>
+</body>
+</html>
