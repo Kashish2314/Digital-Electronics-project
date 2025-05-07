@@ -366,6 +366,51 @@
                 grid-template-columns: 1fr;
             }
         }
+        .workspace {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 500px;
+            position: relative;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Add styles for circuit inputs */
+        .circuit-input {
+            position: absolute;
+            left: 20px;
+            width: 30px;
+            height: 30px;
+            background-color: var(--primary);
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .circuit-input-a {
+            top: 100px;
+        }
+        
+        .circuit-input-b {
+            top: 200px;
+        }
+        
+        .circuit-input-connector {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--secondary);
+            border-radius: 50%;
+            right: -5px;
+            top: 10px;
+        }
+        
+        .level-info {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -459,7 +504,6 @@
         const hintBtn = document.getElementById('hint-btn');
         const hintOverlay = document.getElementById('hint-overlay');
         const hintText = document.getElementById('hint-text');
-        const hintImage = document.getElementById('hint-image');
         const closeHintBtn = document.getElementById('close-hint-btn');
         const levelTitle = document.getElementById('level-title');
         const levelDescription = document.getElementById('level-description');
@@ -489,8 +533,7 @@
                     { inputs: [0], output: 1 },
                     { inputs: [1], output: 0 }
                 ],
-                hint: "Connect both inputs of a NAND gate together to create a NOT gate.",
-                // hintImage: "https://via.placeholder.com/300x150?text=NOT+Gate+Hint"
+                hint: "Connect both inputs of a NAND gate together to create a NOT gate."
             },
             {
                 title: "Level 2: AND Gate",
@@ -502,8 +545,7 @@
                     { inputs: [1, 0], output: 0 },
                     { inputs: [1, 1], output: 1 }
                 ],
-                hint: "Use two NAND gates: the first NAND gate connects to both inputs, and the second NAND gate connects to the output of the first NAND gate.",
-                // hintImage: "https://via.placeholder.com/300x150?text=AND+Gate+Hint"
+                hint: "Use two NAND gates: the first NAND gate connects to both inputs, and the second NAND gate connects to the output of the first NAND gate."
             },
             {
                 title: "Level 3: OR Gate",
@@ -515,8 +557,7 @@
                     { inputs: [1, 0], output: 1 },
                     { inputs: [1, 1], output: 1 }
                 ],
-                hint: "Use three NAND gates: the first two NAND gates connect to the inputs, and the third NAND gate connects to the outputs of the first two.",
-                // hintImage: "https://via.placeholder.com/300x150?text=OR+Gate+Hint"
+                hint: "Use three NAND gates: the first two NAND gates connect to the inputs, and the third NAND gate connects to the outputs of the first two."
             },
             {
                 title: "Level 4: XOR Gate",
@@ -528,8 +569,7 @@
                     { inputs: [1, 0], output: 1 },
                     { inputs: [1, 1], output: 0 }
                 ],
-                hint: "Use four NAND gates: the first two NAND gates connect to the inputs, the third NAND gate connects to the outputs of the first two, and the fourth NAND gate connects to the outputs of the first and third NAND gates.",
-                // hintImage: "https://via.placeholder.com/300x150?text=XOR+Gate+Hint"
+                hint: "Use four NAND gates: the first two NAND gates connect to the inputs, the third NAND gate connects to the outputs of the first two, and the fourth NAND gate connects to the outputs of the first and third NAND gates."
             }
         ];
         
@@ -543,6 +583,61 @@
             
             // Set up event listeners
             setupEventListeners();
+            
+            // Add circuit inputs
+            createCircuitInputs();
+        }
+        
+        // Create circuit input nodes
+        function createCircuitInputs() {
+            // Create Input A
+            const inputNodeA = document.createElement('div');
+            inputNodeA.className = 'circuit-input circuit-input-a';
+            inputNodeA.id = 'circuit-input-a';
+            inputNodeA.textContent = 'A';
+            
+            const connectorA = document.createElement('div');
+            connectorA.className = 'circuit-input-connector';
+            connectorA.id = 'circuit-input-a-connector';
+            connectorA.dataset.type = 'circuit-output';
+            connectorA.dataset.input = 'a';
+            
+            inputNodeA.appendChild(connectorA);
+            workspace.appendChild(inputNodeA);
+            
+            // Create Input B (only for levels with 2 inputs)
+            if (levels[currentLevel - 1].inputs === 2) {
+                const inputNodeB = document.createElement('div');
+                inputNodeB.className = 'circuit-input circuit-input-b';
+                inputNodeB.id = 'circuit-input-b';
+                inputNodeB.textContent = 'B';
+                
+                const connectorB = document.createElement('div');
+                connectorB.className = 'circuit-input-connector';
+                connectorB.id = 'circuit-input-b-connector';
+                connectorB.dataset.type = 'circuit-output';
+                connectorB.dataset.input = 'b';
+                
+                inputNodeB.appendChild(connectorB);
+                workspace.appendChild(inputNodeB);
+            }
+            
+            // Add event listeners to connectors
+            document.querySelectorAll('.circuit-input-connector').forEach(connector => {
+                connector.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    if (!selectedInput) {
+                        // Select this connector
+                        selectedInput = connector;
+                        connector.style.boxShadow = '0 0 0 2px yellow';
+                    } else {
+                        // Clear selection
+                        selectedInput.style.boxShadow = 'none';
+                        selectedInput = null;
+                    }
+                });
+            });
         }
         
         // Load level
@@ -577,6 +672,9 @@
 
             // Update output display
             updateOutput();
+            
+            // Recreate circuit inputs
+            createCircuitInputs();
         }
 
         function resetWorkspace() {
@@ -595,6 +693,9 @@
 
             // Reset verification message
             verificationMessage.textContent = '';
+            
+            // Recreate circuit inputs
+            createCircuitInputs();
         }
 
         // Setup event listeners
@@ -642,13 +743,17 @@
             tutorial.addEventListener('click', () => {
                 tutorial.style.display = 'none';
             });
+            
+            // Handle gate dragging
+            document.addEventListener('mouseup', () => {
+                draggedGate = null;
+            });
         }
 
         // Show hint for the current level
         function showHint() {
             const levelData = levels[currentLevel - 1];
             hintText.textContent = levelData.hint;
-            // hintImage.src = levelData.hintImage;
             hintOverlay.style.display = 'flex';
         }
 
@@ -789,8 +894,41 @@
                     } else {
                         // Try to connect
                         const selectedType = selectedInput.dataset.type;
-                        const selectedGateId = parseInt(selectedInput.dataset.gateId);
-
+                        
+                        // Handle circuit input connections
+                        if (selectedType === 'circuit-output' && pinType === 'input') {
+                            // Connect circuit input to gate input
+                            const inputType = selectedInput.dataset.input; // 'a' or 'b'
+                            
+                            // Check if input is already connected
+                            if (isInputConnected(gateId, parseInt(pin.dataset.index))) {
+                                // Input already connected, clear selection
+                                selectedInput.style.boxShadow = 'none';
+                                selectedInput = null;
+                                return;
+                            }
+                            
+                            // Create wire
+                            createWire(selectedInput, pin);
+                            
+                            // Connect in data model
+                            const gate = gates.find(g => g.id === gateId);
+                            if (gate) {
+                                gate.inputs[parseInt(pin.dataset.index) - 1].connected = {
+                                    isCircuitInput: true,
+                                    inputType: inputType
+                                };
+                            }
+                            
+                            // Update output
+                            updateOutput();
+                            
+                            // Clear selection
+                            selectedInput.style.boxShadow = 'none';
+                            selectedInput = null;
+                            return;
+                        }
+                        
                         // Only connect output to input or input to output
                         if ((selectedType === 'output' && pinType === 'input') ||
                             (selectedType === 'input' && pinType === 'output')) {
@@ -804,7 +942,7 @@
                             }
 
                             if (selectedType === 'input' && isOutputConnectedToInput(gateId, parseInt(pin.dataset.index), 
-                                selectedGateId, parseInt(selectedInput.dataset.index))) {
+                                parseInt(selectedInput.dataset.gateId), parseInt(selectedInput.dataset.index))) {
                                 // Already connected to this input, clear selection
                                 selectedInput.style.boxShadow = 'none';
                                 selectedInput = null;
@@ -816,9 +954,9 @@
 
                             // Connect in data model
                             if (selectedType === 'output') {
-                                connectGates(selectedGateId, gateId, parseInt(pin.dataset.index));
+                                connectGates(parseInt(selectedInput.dataset.gateId), gateId, parseInt(pin.dataset.index));
                             } else {
-                                connectGates(gateId, selectedGateId, parseInt(selectedInput.dataset.index));
+                                connectGates(gateId, parseInt(selectedInput.dataset.gateId), parseInt(selectedInput.dataset.index));
                             }
 
                             // Update output
@@ -930,47 +1068,31 @@
                 });
             });
 
-            // Find circuit input wires - these are wires that aren't connected to any gate output
-            const circuitInputs = [];
-
-            // For all gate inputs that aren't connected to another gate
+            // Process circuit inputs first
             gates.forEach(gate => {
                 gate.inputs.forEach((input, index) => {
-                    if (input.connected === null) {
-                        circuitInputs.push({
-                            gateId: gate.id,
-                            inputIndex: index + 1
-                        });
+                    if (input.connected && input.connected.isCircuitInput) {
+                        // Set value based on circuit input
+                        if (input.connected.inputType === 'a') {
+                            input.value = inputAValue;
+                        } else if (input.connected.inputType === 'b') {
+                            input.value = inputBValue;
+                        }
                     }
                 });
             });
 
-            // Assign input values based on level
-            const levelData = levels[currentLevel - 1];
-            if (levelData.inputs === 1) {
-                // Assign input A to all unconnected inputs
-                circuitInputs.forEach(input => {
-                    const gate = gates.find(g => g.id === input.gateId);
-                    if (gate) {
-                        gate.inputs[input.inputIndex - 1].value = inputAValue;
+            // Process gate-to-gate connections
+            gates.forEach(gate => {
+                gate.inputs.forEach((input, index) => {
+                    if (input.connected && !input.connected.isCircuitInput) {
+                        const sourceGate = gates.find(g => g.id === input.connected.gateId);
+                        if (sourceGate) {
+                            input.value = sourceGate.outputs[input.connected.outputIndex - 1].value;
+                        }
                     }
                 });
-            } else if (levelData.inputs === 2) {
-                // Assign input A and B to first and second unconnected inputs
-                if (circuitInputs.length >= 1) {
-                    const gate = gates.find(g => g.id === circuitInputs[0].gateId);
-                    if (gate) {
-                        gate.inputs[circuitInputs[0].inputIndex - 1].value = inputAValue;
-                    }
-                }
-
-                if (circuitInputs.length >= 2) {
-                    const gate = gates.find(g => g.id === circuitInputs[1].gateId);
-                    if (gate) {
-                        gate.inputs[circuitInputs[1].inputIndex - 1].value = inputBValue;
-                    }
-                }
-            }
+            });
 
             // Evaluate circuit (multiple passes to handle feedback)
             const maxPasses = 10;
@@ -1132,19 +1254,10 @@
                 wire.element.style.left = `${startX}px`;
                 wire.element.style.top = `${startY}px`;
                 wire.element.style.transform = `rotate(${angle}deg)`;
-
-                // Update wire positions in data model
-                wire.startPosition = { x: startX, y: startY };
-                wire.endPosition = { x: endX, y: endY };
             }
         }
 
-        // Stop dragging
-        document.addEventListener('mouseup', () => {
-            draggedGate = null;
-        });
-
-        // Initialize game
+        // Initialize the game
         initGame();
     });
     </script>
